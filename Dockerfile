@@ -1,16 +1,18 @@
-FROM docker.elastic.co/elasticsearch/elasticsearch:7.17.18
+FROM getmeili/meilisearch:v1.6
 
-ENV discovery.type=single-node
-ENV network.host=0.0.0.0
+# Bind Meilisearch to all interfaces
+ENV MEILI_HTTP_ADDR=0.0.0.0:7700
 
-# Disable security (7.x compatible)
-ENV xpack.security.enabled=false
+# Disable master key (ONLY for private use)
+ENV MEILI_NO_ANALYTICS=true
+ENV MEILI_ENV=production
 
-# Very low memory (Back4App safe)
-ENV ES_JAVA_OPTS="-Xms256m -Xmx256m"
+# Reduce memory usage
+ENV MEILI_MAX_INDEXING_MEMORY=256Mb
+ENV MEILI_MAX_INDEXING_THREADS=1
 
-# Avoid mmap crash
-ENV bootstrap.memory_lock=false
-ENV node.store.allow_mmap=false
+# Expose Meilisearch port
+EXPOSE 7700
 
-EXPOSE 9200
+# Run Meilisearch
+CMD ["meilisearch"]
