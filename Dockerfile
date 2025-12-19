@@ -1,18 +1,24 @@
 FROM getmeili/meilisearch:v1.6
 
-# Bind Meilisearch to all interfaces
+# Bind to all interfaces
 ENV MEILI_HTTP_ADDR=0.0.0.0:7700
 
-# Disable master key (ONLY for private use)
-ENV MEILI_NO_ANALYTICS=true
+# Production & analytics off
 ENV MEILI_ENV=production
+ENV MEILI_NO_ANALYTICS=true
 
-# Reduce memory usage
-ENV MEILI_MAX_INDEXING_MEMORY=256Mb
+# Reduce startup + memory pressure
+ENV MEILI_MAX_INDEXING_MEMORY=128Mb
 ENV MEILI_MAX_INDEXING_THREADS=1
 
-# Expose Meilisearch port
+# Disable snapshot & dumps (faster boot)
+ENV MEILI_DUMP_DIR=/tmp/dumps
+ENV MEILI_SNAPSHOT_DIR=/tmp/snapshots
+
 EXPOSE 7700
 
-# Run Meilisearch
-CMD ["meilisearch"]
+# Healthcheck so Back4App waits properly
+HEALTHCHECK --interval=5s --timeout=3s --start-period=20s --retries=5 \
+  CMD wget -qO- http://127.0.0.1:7700/health || exit 1
+
+CMD ["meilisearch", "--log-level", "INFO"]
